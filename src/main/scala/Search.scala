@@ -1,7 +1,5 @@
-
 import akka.actor.{ActorRef, ActorSystem,Actor}
 import scala.io.StdIn.readLine
-
 
 class Search(supervisor:ActorRef,index:ActorRef) extends Actor{
 
