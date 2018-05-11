@@ -1,36 +1,60 @@
-import akka.actor.Actor
-import akka.actor.ActorSystem
-import akka.actor.Props
+import akka.actor.{Actor, ActorPath, ActorSystem, PoisonPill, Props}
+import scala.collection.mutable.ListBuffer
 import java.net.URL
 
-case class Start(url: URL)
+
+case class StartScraping(url: URL)
 case class ScrapeRequest(url: URL)
+case class IndexRequest(content: PageContent)
 case class ScrapeResponse(url:URL,list: List[URL])
 case class PageContent(url:URL,content:List[String],links:List[URL])
+case class SearchRequest(search:List[String])
+
 
 
 //Parent Actor for orchestrating the crawl and search.
 class Handler (system:ActorSystem) extends Actor {
 
+  val indexer = context actorOf Props(new Indexer(self))
+
+  var wasscraped = Set.empty[URL]
+  var indexstore = Map.empty[URL,List[String]]
+  var actorslist = new ListBuffer[ActorPath]
+
+
   def receive: Receive = {
-    case Start(starturl) => scrapecontent(starturl)
-    case ScrapeResponse(starturl, links) => println(s"$starturl was scraped")
 
-      for (url <- links) {
+    case StartScraping(starturl) => scrapecontent(starturl)
 
-        if (url.getHost == starturl.getHost) {
+    case ScrapeResponse(url, links) => wasscraped += url
 
-          println(s"scanning next page $url")
-        }
-        else {
-          println(s"ignoring $url")
-        }
-     }
+      //takes list of returned links and filters down to the links on the same host
+      val toscrape = links.filter(_.getHost == url.getHost)
+      toscrape.map(x => if (!wasscraped.contains(x)) scrapecontent(x))
+      sender() ! PoisonPill
+      val toremove = sender().path
+      actorslist -= toremove
+
+    case "searchprompt" =>
+
+      initsearchactor()
   }
   def scrapecontent(url: URL): Unit = {
-    val scraper = system.actorOf(Props (new Scraper(self)))
-    scraper ! ScrapeRequest(url)
+    if (actorslist.size < 10) {
+      val scraper = system.actorOf(Props (new Scraper(self,indexer)))
+      actorslist += scraper.path
+      scraper ! ScrapeRequest(url)
+      }
+
+
   }
+
+  def initsearchactor(): Unit = {
+    val searchactor = context actorOf Props(new Search(self,indexer))
+
+  }
+
+
 }
 
 object Main extends App {
@@ -42,5 +66,7 @@ object Main extends App {
   val url = new URL("https://www.nytimes.com/?WT.z_jog=1&hF=t&vS=undefined")
 
   //initiate actor system
-  handler ! Start(url)
+  handler ! StartScraping(url)
+  handler ! "searchprompt"
+
 }
