@@ -1,0 +1,7 @@
+sbt --help
+sbt help
+sbt compile
+:quit
+exit
+:quit
+exit

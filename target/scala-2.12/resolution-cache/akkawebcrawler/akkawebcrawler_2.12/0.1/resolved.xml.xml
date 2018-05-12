@@ -4,7 +4,7 @@
 		module="akkawebcrawler_2.12"
 		revision="0.1"
 		status="integration"
-		publication="20180511110250"
+		publication="20180512134726"
 	>
 		<description>
 		AkkaWebCrawler
