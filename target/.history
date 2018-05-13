@@ -5,3 +5,9 @@ sbt compile
 exit
 :quit
 exit
+;reload; set _root_.org.jetbrains.sbt.StructureKeys.sbtStructureOptions in Global := "download resolveClassifiers" ;*/*:dumpStructureTo /private/var/folders/9h/w9pxt7611j35m43h69zbvb480000gn/T/sbt-structure.xml; session clear-all
+quit
+compile
+;reload; set _root_.org.jetbrains.sbt.StructureKeys.sbtStructureOptions in Global := "download resolveClassifiers" ;*/*:dumpStructureTo /private/var/folders/9h/w9pxt7611j35m43h69zbvb480000gn/T/sbt-structure.xml; session clear-all
+compile
+;reload; set _root_.org.jetbrains.sbt.StructureKeys.sbtStructureOptions in Global := "download resolveClassifiers" ;*/*:dumpStructureTo /private/var/folders/9h/w9pxt7611j35m43h69zbvb480000gn/T/sbt-structure.xml; session clear-all
