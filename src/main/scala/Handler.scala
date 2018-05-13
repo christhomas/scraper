@@ -18,62 +18,37 @@ class Handler (system:ActorSystem) extends Actor {
   var indexstore = Map.empty[URL,List[String]]
   var actorslist = new ListBuffer[ActorPath]
 
-
   def receive: Receive = {
-
     case StartScraping(starturl) => scrapecontent(starturl)
 
-    case ScrapeResponse(url, links) => wasscraped += url
+    case ScrapeResponse(url, links) =>
+        wasscraped += url
 
-      //takes list of returned links and filters down to the links on the same host
-      val toscrape = links.filter(_.getHost == url.getHost)
+        //takes list of returned links and filters down to the links on the same host
+        val toscrape = links.filter(_.getHost == url.getHost)
 
-      toscrape.map(x => if (!wasscraped.contains(x)) scrapecontent(x))
+        toscrape.map(x => if (!wasscraped.contains(x)) scrapecontent(x))
 
-      sender() ! PoisonPill
+        sender() ! PoisonPill
 
-      val toremove = sender().path
+        val toremove = sender().path
 
-      actorslist -= toremove
+        actorslist -= toremove
 
-    case "searchprompt" =>
-
-      initsearchactor()
+    case "searchprompt" => initsearchactor()
   }
+
   def scrapecontent(url: URL): Unit = {
-
     if (actorslist.size < 10) {
-
       val scraper = system.actorOf(Props (new Scraper(self,indexer)))
 
       actorslist += scraper.path
 
       scraper ! ScrapeRequest(url)
-      }
-
-
+    }
   }
 
   def initsearchactor(): Unit = {
-
     val searchactor = context actorOf Props(new Search(self,indexer))
-
   }
-
-
-}
-
-object Main extends App {
-
-  val system = ActorSystem()
-
-  val handler = system.actorOf(Props(new Handler(system)))
-
-  val url = new URL("https://www.nytimes.com/?WT.z_jog=1&hF=t&vS=undefined")
-
-  //initiate actor system
-  handler ! StartScraping(url)
-
-  handler ! "searchprompt"
-
 }

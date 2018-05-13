@@ -9,12 +9,8 @@ class Search(supervisor:ActorRef,index:ActorRef) extends Actor{
 
     self ! SearchRequest(searchstring)
 
-
   def receive:Receive = {
   case SearchRequest(string) => println(s"Searching for $string")
       index ! SearchRequest(string)
-
   }
-
-
 }

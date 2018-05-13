@@ -11,8 +11,11 @@ RUN \
   sbt sbtVersion
 
 ADD . /app
+
 ADD ./entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+
 WORKDIR /app
+
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["sbt", "run"]
